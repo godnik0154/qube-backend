@@ -3,7 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const app = express();
 const morgan = require('morgan');
-const port = process.env.port || 6000;
+const port = process.env.port || 9000;
 const { mongoConnect } = require('./util/database');
 const signup = require('./routes/signup');
 const login = require('./routes/login');
@@ -20,7 +20,7 @@ app.use(express.json());
 app.use(express.urlencoded({ limit: '50mb', extended: false }));
 
 app.get('/',(req,res) => {
-  res.status(200).json({
+  return res.status(200).json({
     data: "Site is working"
   })
 })
