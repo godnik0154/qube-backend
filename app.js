@@ -3,7 +3,6 @@ const express = require('express');
 const cors = require('cors');
 const app = express();
 const morgan = require('morgan');
-const port = process.env.port || 9000;
 const { mongoConnect } = require('./util/database');
 const signup = require('./routes/signup');
 const login = require('./routes/login');
@@ -28,7 +27,9 @@ app.get('/',(req,res) => {
 app.use('/signup', signup);
 app.use('/login', login);
 
-app.listen(port, () => {
-  mongoConnect();
-  console.log(`Server running on port ${port}`);
+const port = process.env.PORT || 9000;
+mongoConnect(async () => {
+  app.listen(port, () => {
+    console.log(`Server running on port ${port}`);
+  });
 });
