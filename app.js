@@ -28,8 +28,8 @@ app.get('/',(req,res) => {
 app.use('/signup', signup);
 app.use('/login', login);
 
-mongoConnect(async () => {
-  app.listen(port, () => {
-    console.log(`Server running on port ${port}`);
-  });
+mongoConnect();
+
+app.listen(port, () => {
+  console.log(`Server running on port ${port}`);
 });

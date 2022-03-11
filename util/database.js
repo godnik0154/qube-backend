@@ -3,14 +3,13 @@ const MongoClient = mongodb.MongoClient;
 
 let _db;
 
-const mongoConnect = (callback) => {
+const mongoConnect = () => {
   MongoClient.connect(
     `mongodb+srv://${process.env.mongoUsername}:${process.env.password}@cluster0.h6rvj.mongodb.net/qube?retryWrites=true&w=majority`
   )
     .then((client) => {
       console.log("Connected to Database");
       _db = client.db();
-      callback();
     })
     .catch((error) => {
       console.log(error);
