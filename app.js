@@ -6,6 +6,8 @@ const morgan = require('morgan');
 const { mongoConnect } = require('./util/database');
 const signup = require('./routes/signup');
 const login = require('./routes/login');
+const onboarding = require('./routes/onboarding');
+const profile = require('./routes/profile');
 app.use(morgan('dev'));
 app.use(cors());
 
@@ -25,6 +27,8 @@ app.get('/',(req,res) => {
 })
 
 app.use('/signup', signup);
+app.use('/onboarding', onboarding);
+app.use('/profile',profile)
 app.use('/login', login);
 
 const port = process.env.PORT || 9000;

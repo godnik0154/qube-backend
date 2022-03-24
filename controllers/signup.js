@@ -23,6 +23,7 @@ exports.addUser = async (req, res) => {
     const data = {
       email,
       password: pass,
+      isCompleted: false
     };
 
     await db.collection('users').insertOne(data);
