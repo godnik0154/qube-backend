@@ -2,66 +2,106 @@ const mime = require("mime");
 const fs = require("fs");
 const { getDb } = require('../util/database');
 const { ObjectId } = require("mongodb");
+const S3 = require('aws-sdk/clients/s3')
 
-exports.addData = async (req,res) => {
+const bucketName = process.env.AWS_BUCKET_NAME
+const region = process.env.AWS_BUCKET_REGION
+const accessKeyId = process.env.AWS_ACCESS_KEY_ID
+const secretAccessKey = process.env.AWS_SECRET_ACCESS_KEY
 
-    const db = getDb();
-    const objectId = ObjectId();
+const s3 = new S3({
+  region,
+  accessKeyId,
+  secretAccessKey
+})
 
-    try{
-        let data = req.body;
+let uploadFile = async (path, fileName) => {
+  const fileStream = fs.createReadStream(path)
 
-        let profileData = data.profile.image;
-		delete data.profile.image;
-		let coverData = data.cover.image;
-		delete data.cover.image;
+  const uploadParams = {
+    Bucket: bucketName,
+    Body: fileStream,
+    Key: fileName
+  }
 
-        data.updatedAt = objectId.getTimestamp();
-        data.isCompleted = true;
+  let dat = await s3.upload(uploadParams).promise();
+  return dat;
+}
 
-		let output = profileData.match(/^data:([A-Za-z-+/]+);base64,(.+)$/);
-		let extension = mime.extension(output[1]);
+exports.addData = async (req, res) => {
 
-		let base64Data = Buffer.from(output[2], 'base64');
+  const db = getDb();
+  const objectId = ObjectId();
 
-		fs.writeFile(`uploads/${data.profile.name}`, base64Data, 'utf8', async (err) => {
-			if(err)
-				throw new Error(err.message);
-		});
+  try {
+    let data = req.body;
 
-		if(coverData)
-		{
-			output = coverData.match(/^data:([A-Za-z-+/]+);base64,(.+)$/);
-			extension = mime.extension(output[1]);
+    let profileData = data.profile.image;
+    delete data.profile.image;
+    let coverData = data.cover.image;
+    delete data.cover.image;
 
-			base64Data = Buffer.from(output[2], 'base64');
+    data.updatedAt = objectId.getTimestamp();
+    data.isCompleted = true;
 
-			fs.writeFile(`uploads/${data.cover.name}`, base64Data, 'utf8', async (err) => {
-				if(err)
-					throw new Error(err.message);
-				delete data.cover.image;
-			});
-		}
+    let output = profileData.match(/^data:([A-Za-z-+/]+);base64,(.+)$/);
+    let extension = mime.extension(output[1]);
 
-        for(let i=0;i<data.socialData.length;i++){
-            data.socialData[i] = data.socialData[i].url;
-        }
+    let base64Data = Buffer.from(output[2], 'base64');
 
-        await db
-        .collection("users")
-        .findOneAndUpdate(
-            {email: req.body.email},
-            {$set: data},
-            {returnNewDocument: true}
-        );        
+    let promise = new Promise((resolve,reject)=>{
+      fs.writeFile(`uploads/${data.profile.name}`, base64Data, 'utf8', async (err) => {
+        if (err)
+          throw new Error(err.message);
+  
+        await uploadFile(`uploads/${data.profile.name}`, data.profile.name);
+        resolve("done");
+      });
+    })
 
-        return res.status(200).json({
-            data
-        })
+    await promise;
+
+    if (coverData) {
+      output = coverData.match(/^data:([A-Za-z-+/]+);base64,(.+)$/);
+      extension = mime.extension(output[1]);
+
+      base64Data = Buffer.from(output[2], 'base64');
+
+      promise = new Promise((resolve,reject)=>{
+        fs.writeFile(`uploads/${data.cover.name}`, base64Data, 'utf8', async (err) => {
+          if (err)
+            throw new Error(err.message);
+          delete data.cover.image;
+          await uploadFile(`uploads/${data.cover.name}`,data.cover.name);
+          resolve('promise');
+        });
+      })
+
+      await promise;
     }
-    catch(err){
-        return res.status(500).json({
-            error: err.message
-        })
+
+    for (let i = 0; i < data.socialData.length; i++) {
+      data.socialData[i] = data.socialData[i].url;
     }
+
+    await db
+      .collection("users")
+      .findOneAndUpdate(
+        { email: req.body.email },
+        { $set: data },
+        { returnNewDocument: true }
+      );
+
+    fs.unlinkSync(`uploads/${data.profile.name}`);
+
+    return res.status(200).json({
+      data
+    })
+  }
+  catch (err) {
+    console.log(err.message)
+    return res.status(500).json({
+      error: err.message
+    })
+  }
 }

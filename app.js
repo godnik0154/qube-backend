@@ -22,7 +22,7 @@ app.use(express.urlencoded({ limit: '50mb', extended: false }));
 
 app.get('/',(req,res) => {
   return res.status(200).json({
-    data: "Site is working"
+    data: "Site is working at new Node"
   })
 })
 
