@@ -9,7 +9,7 @@ const login = require('./routes/login');
 const onboarding = require('./routes/onboarding');
 const profile = require('./routes/profile');
 app.use(morgan('dev'));
-app.use(cors());
+app.use(cors('*'));
 
 app.use(
   express.json({
@@ -22,7 +22,7 @@ app.use(express.urlencoded({ limit: '50mb', extended: false }));
 
 app.get('/',(req,res) => {
   return res.status(200).json({
-    data: "Site is working at new Node"
+    data: "Site is working at new"
   })
 })
 
