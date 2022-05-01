@@ -1,4 +1,5 @@
 const S3 = require('aws-sdk/clients/s3')
+const { getDb } = require('../util/database');
 
 const bucketName = process.env.AWS_BUCKET_NAME
 const region = process.env.AWS_BUCKET_REGION
@@ -31,6 +32,28 @@ exports.getImage = async (req, res) => {
   catch (err) {
     return res.status(500).json({
       error: err.message
+    })
+  }
+}
+
+exports.getProfile = async (req, res) => {
+  try{
+    let name = req.params.name;
+
+    let names = name.split('_');
+
+    const db = getDb(); 
+
+    let results = await db
+    .collection("users")
+    .findOne({firstName: names[0],lastName: names[1]})
+
+    return res.status(200).json({
+      data: results
+    })
+  }catch(err){
+    return res.status(500).json({
+      
     })
   }
 }

@@ -73,6 +73,7 @@ exports.addData = async (req, res) => {
             throw new Error(err.message);
           delete data.cover.image;
           await uploadFile(`uploads/${data.cover.name}`,data.cover.name);
+          fs.unlinkSync(`uploads/${data.cover.name}`);
           resolve('promise');
         });
       })
