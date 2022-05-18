@@ -106,3 +106,38 @@ exports.addData = async (req, res) => {
     })
   }
 }
+
+
+exports.getAllBrands = async (req, res) => {
+  try{
+    const db = getDb();
+
+    const data = await db
+      .collection("users")
+      .find({
+        brand: {
+          $exists: true
+        }
+      })
+      .project({
+        brand: 1,
+        _id: 0
+      })
+      .toArray()
+
+    const items = [];
+
+      for(let i in data){
+        items.push(data[i].brand);
+      }
+
+    return res.status(200).json({
+      data: items
+    })
+  }
+  catch(err){
+    return res.status(500).json({
+      error: err.message
+    })
+  }
+}

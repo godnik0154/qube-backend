@@ -40,20 +40,22 @@ exports.getProfile = async (req, res) => {
   try{
     let name = req.params.name;
 
-    let names = name.split('_');
+    let names = name.replaceAll('_',' ');
 
-    const db = getDb(); 
+    console.log(names);
+
+    const db = getDb();
 
     let results = await db
     .collection("users")
-    .findOne({firstName: names[0],lastName: names[1]})
+    .findOne({brand: names})
 
     return res.status(200).json({
       data: results
     })
   }catch(err){
     return res.status(500).json({
-      
+      err: error.message
     })
   }
 }
