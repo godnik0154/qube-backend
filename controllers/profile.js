@@ -40,7 +40,8 @@ exports.getProfile = async (req, res) => {
   try{
     let name = req.params.name;
 
-    let names = name.replaceAll('_',' ');
+    let names = name.replace(/_/g, ' ');
+
 
     console.log(names);
 
