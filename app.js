@@ -8,6 +8,7 @@ const signup = require('./routes/signup');
 const login = require('./routes/login');
 const onboarding = require('./routes/onboarding');
 const profile = require('./routes/profile');
+const verifyMember = require('./routes/verifycredentials')
 app.use(morgan('dev'));
 
 const corsOptions = { 
@@ -37,6 +38,7 @@ app.use('/signup', signup);
 app.use('/onboarding', onboarding);
 app.use('/profile',profile);
 app.use('/login', login);
+app.use('/verify',verifyMember)
 
 const port = process.env.PORT || 9000;
 mongoConnect(async () => {

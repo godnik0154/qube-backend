@@ -28,6 +28,54 @@ let uploadFile = async (path, fileName) => {
   return dat;
 }
 
+exports.updateImage = async (req, res) => {
+  const db = getDb();
+  const objectId = ObjectId();
+
+  try{
+    let data = req.body;
+    let profileData = data.profile.image;
+    delete data.profile.image;
+
+    data.updatedAt = objectId.getTimestamp();
+    data.isCompleted = true;
+
+    let output = profileData.match(/^data:([A-Za-z-+/]+);base64,(.+)$/);
+
+    let base64Data = Buffer.from(output[2], 'base64');
+
+    let promise = new Promise((resolve,reject)=>{
+      fs.writeFile(`uploads/${data.profile.name}`, base64Data, 'utf8', async (err) => {
+        if (err)
+          throw new Error(err.message);
+        await uploadFile(`uploads/${data.profile.name}`, data.profile.name);
+        resolve("done");
+      });
+    })
+
+    await promise;
+
+    await db
+      .collection("users")
+      .findOneAndUpdate(
+        { email: req.body.email },
+        { $set: data },
+        { returnNewDocument: true }
+      );
+
+    fs.unlinkSync(`uploads/${data.profile.name}`);
+
+    return res.status(200).json({
+      data
+    })
+  } catch(E){
+    console.log(err.message)
+    return res.status(500).json({
+      error: err.message
+    })
+  }
+}
+
 exports.addData = async (req, res) => {
 
   const db = getDb();

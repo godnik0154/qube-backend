@@ -1,5 +1,6 @@
 const S3 = require('aws-sdk/clients/s3')
 const { getDb } = require('../util/database');
+const bcrypt = require('bcrypt');
 
 const bucketName = process.env.AWS_BUCKET_NAME
 const region = process.env.AWS_BUCKET_REGION
@@ -58,5 +59,79 @@ exports.getProfile = async (req, res) => {
     return res.status(500).json({
       err: error.message
     })
+  }
+}
+
+exports.changePassword = async (req,res) => {
+
+  const db = getDb();
+
+  try {
+    let { email, password } = req.body;
+
+    const user = await db.collection('users').findOne({ email });
+
+    if (!user) {
+      return res.status(200).json({
+        data: false
+      });
+    }
+
+    const saltRounds = await bcrypt.genSalt(10);
+
+    const pass = await bcrypt.hash(password, saltRounds);
+
+
+    await db
+      .collection('users')
+      .findOneAndUpdate(
+      { email },
+      { $set: {
+        password: pass
+      } },
+      { returnNewDocument: true }
+    );
+
+    return res.status(200).json({
+      data: true
+    });
+  } catch (err) {
+    return res.status(500).json({
+      error: err.message,
+    });
+  }
+}
+
+exports.changeGenral = async (req,res) => {
+  const db = getDb();
+
+  try {
+    let { email, field,value } = req.body;
+
+    const user = await db.collection('users').findOne({ email });
+
+    if (!user) {
+      return res.status(200).json({
+        data: false
+      });
+    }
+
+    await db
+      .collection('users')
+      .findOneAndUpdate(
+      { email },
+      { $set: {
+        [field]: value
+      } },
+      { returnNewDocument: true }
+    );
+
+    return res.status(200).json({
+      data: true
+    });
+  } catch (err) {
+    return res.status(500).json({
+      error: err.message,
+    });
   }
 }
