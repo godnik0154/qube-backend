@@ -14,7 +14,7 @@ exports.sendOtpViaMail = async (req, res) => {
   const { email,type } = req.body;
   const db = getDb();
   let now = new Date();
-  const otp = crypto.randomInt(000001,999999);
+  const otp = Math.floor(100000 + Math.random() * 900000); //crypto.randomInt(000001,999999);
 
   try{
 
@@ -144,8 +144,10 @@ exports.verifyOtpViaMail = async (req, res) => {
   try{
 
     const otp = await db.collection('otp').findOne({
-      email
+      email:newemail
     });
+
+    console.log(otp,newemail,email,sampleotp);
 
     if(parseInt(otp.otp)!==sampleotp){
       res.status(200).json({data:'Invalid'});

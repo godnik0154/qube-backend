@@ -25,6 +25,10 @@ app.use(express.json({
 app.use(express.json());
 app.use(express.urlencoded({ limit: '50mb', extended: false }));
 
+app.get('/status',(req,res)=>{
+  return res.status(200).send('Working');
+})
+
 app.get('/',(req,res,next) => {
   res.setHeader("Access-Control-Allow-Origin", "*"); 
   res.setHeader("Access-Control-Allow-Methods", "POST,GET,OPTIONS"); 
